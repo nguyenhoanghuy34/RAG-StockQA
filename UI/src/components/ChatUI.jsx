@@ -35,11 +35,14 @@ export default function ChatUI() {
   <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
     <div className="pointer-events-auto w-[390px] h-[800px] flex flex-col rounded-3xl bg-white/90 backdrop-blur-md shadow-2xl">
       
-      {/* Header */}
-      <div className="rounded-t-3xl bg-blue-600 p-4 text-white">
-        <h2 className="text-lg font-semibold">AI Chatbot</h2>
-        <p className="text-xs opacity-80">Online</p>
-      </div>
+{/* Header */}
+<div className="rounded-t-3xl bg-gradient-to-r from-purple-700 to-sky-400 p-4 text-white flex flex-col">
+  <h2 className="text-lg font-semibold">Chatbot Stock</h2>
+  <p className="text-xs opacity-80 flex items-center gap-2">
+    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+    Online
+  </p>
+</div>
 
       {/* Messages */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
