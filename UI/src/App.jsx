@@ -1,4 +1,4 @@
-import ChatUI from "./components/ChatUI";
+import ChatUI from "../src/components/ChatUI";
 
 function App() {
   return <ChatUI />;
