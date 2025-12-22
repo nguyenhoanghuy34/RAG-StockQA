@@ -1,19 +1,25 @@
-# main.py
 from fastapi import FastAPI
+from pydantic import BaseModel
+from datetime import datetime
+from typing import List
 
-app = FastAPI(title="RAG Stock QA API")
+app = FastAPI()
 
-# Logic RAG tượng trưng luôn trong main
-def get_rag_answer(question: str) -> str:
-    return f"Đây là câu trả lời giả lập cho câu hỏi: '{question}'"
+chat_history = {}  # lưu tạm theo user_id
 
-# API endpoint
-@app.get("/rag/answer")
-def answer(question: str):
-    answer_text = get_rag_answer(question)
-    return {"question": question, "answer": answer_text}
+class Message(BaseModel):
+    user_id: str
+    message: str
 
-# Chạy server
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+@app.post("/chat/send")
+def send_message(msg: Message):
+    user_msg = {"role": "user", "text": msg.message, "timestamp": datetime.now().isoformat()}
+    bot_msg = {"role": "bot", "text": f"Câu trả lời tượng trưng cho: '{msg.message}'", "timestamp": datetime.now().isoformat()}
+    
+    chat_history.setdefault(msg.user_id, []).extend([user_msg, bot_msg])
+    
+    return bot_msg
+
+@app.get("/chat/history/{user_id}")
+def get_history(user_id: str):
+    return chat_history.get(user_id, [])
