@@ -1,20 +1,19 @@
 # main.py
 from fastapi import FastAPI
 
-app = FastAPI()  # Tạo app FastAPI
+app = FastAPI(title="RAG Stock QA API")
 
-# Route thử nghiệm
-@app.get("/")
-def read_root():
-    return {"message": "Hello, FastAPI!"}
+# Logic RAG tượng trưng luôn trong main
+def get_rag_answer(question: str) -> str:
+    return f"Đây là câu trả lời giả lập cho câu hỏi: '{question}'"
 
-# Route với tham số
-@app.get("/hello/{name}")
-def say_hello(name: str):
-    return {"message": f"Hello, {name}!"}
+# API endpoint
+@app.get("/rag/answer")
+def answer(question: str):
+    answer_text = get_rag_answer(question)
+    return {"question": question, "answer": answer_text}
 
-
-# Chạy server trực tiếp khi dùng `python main.py`
+# Chạy server
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
