@@ -17,7 +17,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"message": "RAG server running"}
+    return {"message": "Welcome to our Q&A stock Application"}
 
 @app.get("/api/test")
 def test_api():
