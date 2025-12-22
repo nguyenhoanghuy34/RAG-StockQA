@@ -1,24 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from RAG_sever.API_sever.rag import router as rag_router
 
-origins = [
-    "http://localhost:3000"
-]
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to our Q&A stock Application"}
+app.include_router(rag_router, prefix="/api")
 
-@app.get("/api/test")
-def test_api():
-    return {"status": "ok"}
+@app.get("/")
+def health_check():
+    return {"status": "RAG server running"}
