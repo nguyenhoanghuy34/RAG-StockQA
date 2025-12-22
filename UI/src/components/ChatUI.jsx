@@ -3,6 +3,7 @@ import { Send } from "lucide-react";
 
 import SpotlightBackground from "..//components/effects/SpotlightBackground";
 import backgroundChat from "../../images/background_chat.png";
+import avtUser from "../../images/avt_user.avif";
 
 export default function ChatUI() {
   const [messages, setMessages] = useState([
@@ -50,33 +51,46 @@ export default function ChatUI() {
             </p>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} items-start gap-2`}
-              >
-                {msg.role === "bot" && (
-                  <img
-                    src="/images/avt_bot.jpg"
-                    alt="AI"
-                    className="w-8 h-8 rounded-full"
-                  />
-                )}
-                <div
-                  className={`max-w-[75%] break-words rounded-2xl px-4 py-2 text-sm ${
-                    msg.role === "user"
-                      ? "bg-gradient-to-r from-purple-700 to-blue-500 text-white text-justify" // User gradient + căn đều
-                      : "bg-gray-200 text-gray-800 text-justify" // Bot giữ nguyên
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            <div ref={endRef} />
-          </div>
+{/* Messages */}
+<div className="flex-1 space-y-3 overflow-y-auto p-4">
+  {messages.map((msg, idx) => (
+    <div
+      key={idx}
+      className={`flex items-start gap-2 ${
+        msg.role === "user" ? "justify-end" : "justify-start"
+      }`}
+    >
+      {msg.role === "bot" && (
+        <img
+          src="/images/avt_bot.jpg"
+          alt="AI"
+          className="w-8 h-8 rounded-full"
+        />
+      )}
+
+      <div
+        className={`max-w-[75%] break-words rounded-2xl px-4 py-2 text-sm ${
+          msg.role === "user"
+            ? "bg-gradient-to-r from-purple-700 to-blue-500 text-white text-justify"
+            : "bg-gray-200 text-gray-800 text-justify"
+        }`}
+      >
+        {msg.text}
+      </div>
+
+{msg.role === "user" && (
+  <img
+    src={avtUser}
+    alt="User"
+    className="w-8 h-8 rounded-full"
+  />
+)}
+
+    </div>
+  ))}
+  <div ref={endRef} />
+</div>
+
 
           {/* Input */}
           <div className="flex items-center gap-2 border-t p-3">
