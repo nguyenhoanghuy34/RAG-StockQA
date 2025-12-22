@@ -1,19 +1,20 @@
+# main.py
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from RAG_sever.API_sever.rag import router as rag_router
+app = FastAPI()  # Tạo app FastAPI
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(rag_router, prefix="/api")
-
+# Route thử nghiệm
 @app.get("/")
-def health_check():
-    return {"status": "RAG server running"}
+def read_root():
+    return {"message": "Hello, FastAPI!"}
+
+# Route với tham số
+@app.get("/hello/{name}")
+def say_hello(name: str):
+    return {"message": f"Hello, {name}!"}
+
+
+# Chạy server trực tiếp khi dùng `python main.py`
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
