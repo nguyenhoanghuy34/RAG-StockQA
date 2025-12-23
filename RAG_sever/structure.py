@@ -1,9 +1,10 @@
-from datetime import datetime
+from models import embedding_model 
 
-def handle_message(message: str):
-    bot_msg = {
-        "role": "bot",
-        "text": f"Câu trả lời tượng trưng cho: '{message}'",
-        "timestamp": datetime.now().isoformat()
+embedding_model_instance = embedding_model.TextEmbeddingModel()
+
+def handle_message(user_message: str):
+    user_embedding = embedding_model_instance.embed(user_message)
+    return {
+        "message": user_message,
+        "embedding": user_embedding.tolist()  # chuyển numpy array sang list
     }
-    return bot_msg
