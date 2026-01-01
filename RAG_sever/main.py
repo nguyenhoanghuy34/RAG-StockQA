@@ -1,13 +1,14 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from structure import handle_message
 
-app = FastAPI()
+from core.config import FAQ_PATH, EMBEDDING_MODEL_NAME
+from models.embedding_model import TextEmbeddingModel
+from services.faq_service import FAQService
+from api.chat import build_chat_router
 
-class Message(BaseModel):
-    message: str
 
-@app.post("/chat/response")
-def send_message(msg: Message):
-    bot_msg = handle_message(msg.message)
-    return bot_msg
+app = FastAPI(title="RAG Stock QA")
+
+embedding_model = TextEmbeddingModel(EMBEDDING_MODEL_NAME)
+faq_service = FAQService(FAQ_PATH, embedding_model)
+
+app.include_router(build_chat_router(faq_service))
