@@ -1,0 +1,6 @@
+symbol,company,price,volume,market_cap,EPS,ROE,ROA
+AAPL,Apple,175.5,5000000,3T,5.3,30,15
+MSFT,Microsoft,320.2,3000000,2.5T,7.1,35,18
+AMZN,Amazon,135.8,4000000,1.7T,3.2,25,12
+GOOG,Alphabet,2850.0,1500000,1.8T,45.0,28,17
+TSLA,Tesla,900.1,6000000,900B,2.1,12,8
