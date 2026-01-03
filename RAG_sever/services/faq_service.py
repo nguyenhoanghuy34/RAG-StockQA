@@ -1,9 +1,6 @@
-# services/faq_service.py
-
 import json
 from typing import List, Dict, Optional
 import numpy as np
-
 from models.embedding_model import TextEmbeddingModel
 
 
@@ -13,52 +10,28 @@ class FAQService:
         self.faq_data = self._load_and_embed_faq(faq_path)
 
     def _load_and_embed_faq(self, path: str) -> List[Dict]:
-        """
-        Load FAQ từ file JSON. Hỗ trợ cả:
-        - JSON array: [ {...}, {...} ]
-        - JSON Lines: {...}\n{...}\n
-        """
         data = []
 
         with open(path, "r", encoding="utf-8") as f:
             content = f.read().strip()
 
-            # Nếu bắt đầu bằng '[' → JSON array
+            # JSON array
             if content.startswith("["):
-                try:
-                    items = json.loads(content)
-                    for idx, item in enumerate(items, start=1):
-                        q, a = item.get("question"), item.get("answer")
-                        if not q or not a:
-                            continue
-                        embedding = self.embedding_model.embed(q)[0]
-                        data.append({
-                            "question": q,
-                            "answer": a,
-                            "embedding": embedding
-                        })
-                except json.JSONDecodeError as e:
-                    print(f"[FAQ] Lỗi đọc JSON array: {e}")
-
-            else:
-                # Xử lý JSON Lines
-                for line_number, line in enumerate(content.splitlines(), start=1):
-                    line = line.strip()
-                    if not line:
+                items = json.loads(content)
+                for item in items:
+                    q = item.get("question")
+                    a = item.get("answer")
+                    if not q or not a:
                         continue
-                    try:
-                        item = json.loads(line)
-                        q, a = item.get("question"), item.get("answer")
-                        if not q or not a:
-                            continue
-                        embedding = self.embedding_model.embed(q)[0]
-                        data.append({
-                            "question": q,
-                            "answer": a,
-                            "embedding": embedding
-                        })
-                    except json.JSONDecodeError:
-                        print(f"[FAQ] JSON lỗi dòng {line_number}")
+
+                    embedding = self.embedding_model.embed(q)[0]
+                    data.append({
+                        "question": q,
+                        "answer": a,
+                        "embedding": embedding
+                    })
+            else:
+                raise ValueError("FAQ file không phải JSON array hợp lệ")
 
         return data
 
@@ -73,8 +46,11 @@ class FAQService:
     def find_best_match(
         self,
         user_question: str,
-        threshold: float = 0.5
+        threshold: float
     ) -> Optional[Dict]:
+        """
+        Trả FAQ nếu similarity >= threshold, ngược lại trả None
+        """
 
         user_vector = self.embedding_model.embed(user_question)[0]
 
@@ -88,10 +64,14 @@ class FAQService:
                 best_item = item
 
         if best_item and best_score >= threshold:
+            print(
+                f"[FAQ HIT] {best_item['question']} | similarity={best_score:.4f}"
+            )
             return {
                 "answer": best_item["answer"],
                 "similarity": round(best_score, 4),
                 "source": "FAQ"
             }
 
+        print(f"[FAQ MISS] best_similarity={best_score:.4f}")
         return None
