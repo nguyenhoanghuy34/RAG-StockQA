@@ -3,6 +3,10 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 from core.config import EMBEDDING_MODEL_NAME
 
+# HuggingFace
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
 # --- Load embedding model (nếu muốn dùng cho similarity về sau) ---
 _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
@@ -20,44 +24,59 @@ STOCK_KEYWORDS = [
 ]
 
 def _is_stock_question(text: str) -> bool:
-    """
-    Trả về True nếu câu hỏi liên quan đến chứng khoán số liệu
-    """
     text_lower = text.lower()
     if re.search(r"\d", text_lower):
         return True
     return any(k in text_lower for k in STOCK_KEYWORDS)
 
 def _filter_stock_df(question: str) -> pd.DataFrame:
-    """
-    Lọc bảng chứng khoán theo 5 công ty, dựa trên từ khóa symbol/ tên công ty
-    """
     question_upper = question.upper()
     filtered = df_stock[df_stock["symbol"].isin(SUPPORTED_SYMBOLS)]
-    # nếu user nhắc tên cụ thể symbol, lọc lại
     for symbol in SUPPORTED_SYMBOLS:
         if symbol in question_upper:
             filtered = filtered[filtered["symbol"] == symbol]
             break
     return filtered
 
+# --- Load HF model 1 lần duy nhất (local) ---
+MODEL_NAME = "TheBloke/llama-2-7b-chat-GGML"  # có thể thay model nhẹ hơn nếu máy yếu
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto")  # GPU nếu có, CPU fallback
+
+def call_llm(prompt: str, max_tokens=300) -> str:
+    print("Đã gọi đến đây")  # confirm hàm được gọi
+    # Encode prompt
+    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+    # Generate output
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=max_tokens,
+        temperature=0.2,
+        do_sample=False  # deterministic
+    )
+    # Decode
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    # In ra ngay trong hàm để debug
+    print("Output HF local:\n", result)
+    return result
+
+# --- Hàm ask_llm HF local ---
 def ask_llm(user_question: str) -> dict:
-    """
-    Nếu câu hỏi liên quan số liệu → truy xuất CSV + trả lời
-    Nếu lý thuyết → trả lời mock
-    """
     if _is_stock_question(user_question):
+        print("DEBUG: Đi vào nhánh SỐ LIỆU")  # debug nhánh stock
         stock_df = _filter_stock_df(user_question)
         if stock_df.empty:
-            return {
-                "answer": "Không tìm thấy dữ liệu cho công ty được yêu cầu.",
-                "source": "LOCAL_REPO"
-            }
-        # chuyển top 5 dòng thành string để LLM có context
+            print("DEBUG: Không tìm thấy dữ liệu phù hợp")
+            return {"answer": "Không tìm thấy dữ liệu phù hợp.", "source": "LOCAL_REPO"}
         data_context = stock_df.head(5).to_string(index=False)
-        answer = f"[LLM+DATA] Dựa trên dữ liệu chứng khoán:\n{data_context}\nGiải thích: {user_question}"
+        prompt = f"Dữ liệu chứng khoán:\n{data_context}\nCâu hỏi: {user_question}"
+        answer = call_llm(prompt)
         return {"answer": answer, "source": "LLM+DATA"}
 
-    # câu hỏi lý thuyết (không cần số liệu)
-    answer = f"[LLM] Giải thích ngắn gọn, mang tính học thuật: {user_question}"
+    print("DEBUG: Đi vào nhánh LÝ THUYẾT")  # debug nhánh lý thuyết
+    prompt = f"{user_question}"
+    answer = call_llm(prompt)
     return {"answer": answer, "source": "LLM"}
+
+
