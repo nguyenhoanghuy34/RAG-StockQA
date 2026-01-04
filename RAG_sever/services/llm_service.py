@@ -40,7 +40,7 @@ def _filter_stock_df(question: str) -> pd.DataFrame:
 
 # --- Load HF model 1 lần duy nhất (local) ---
 MODEL_NAME = "TheBloke/llama-2-7b-chat-GGML"  # có thể thay model nhẹ hơn nếu máy yếu
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, legacy=True)
 model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto")  # GPU nếu có, CPU fallback
 
 def call_llm(prompt: str, max_tokens=300) -> str:
