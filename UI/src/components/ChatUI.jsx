@@ -5,6 +5,8 @@ import SpotlightBackground from "..//components/effects/SpotlightBackground";
 import backgroundChat from "../../images/background_chat.png";
 import avtUser from "../../images/avt_user.avif";
 
+import { chatApi } from "../api/api";
+
 export default function ChatUI() {
   const [messages, setMessages] = useState([
     { role: "bot", text: "Xin chào 👋 Bạn cần hỗ trợ gì?" },
@@ -12,23 +14,37 @@ export default function ChatUI() {
   const [input, setInput] = useState("");
   const endRef = useRef(null);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Thêm tin nhắn user
-    setMessages((prev) => [...prev, { role: "user", text: input }]);
+    const userText = input;
+
+    // 1. Thêm tin nhắn user
+    setMessages((prev) => [...prev, { role: "user", text: userText }]);
     setInput("");
 
-    // Bot phản hồi sau 600ms
-    setTimeout(() => {
+    try {
+      // 2. Gọi backend
+      const data = await chatApi(userText);
+
+      // 3. Thêm tin nhắn bot từ API
       setMessages((prev) => [
         ...prev,
         {
           role: "bot",
-          text: "Tôi đã nhận được tin nhắn. Tôi đã nhận được tin nhắn. Tôi đã nhận được tin nhắn. Tôi đã nhận được tin nhắn. Tôi đã nhận được tin nhắn."
+          text: data.answer,
         },
       ]);
-    }, 600);
+    } catch (err) {
+      // 4. Lỗi API
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text: "Hệ thống đang bận, vui lòng thử lại sau.",
+        },
+      ]);
+    }
   };
 
   // Scroll xuống cuối mỗi lần có tin nhắn mới
@@ -38,7 +54,6 @@ export default function ChatUI() {
 
   return (
     <SpotlightBackground background={backgroundChat}>
-      {/* KHUNG CHAT KIỂU IPHONE 17 */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
         <div className="pointer-events-auto w-[390px] h-[800px] flex flex-col rounded-3xl bg-white/90 backdrop-blur-md shadow-2xl">
           
